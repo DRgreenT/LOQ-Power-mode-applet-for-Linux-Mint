@@ -1,0 +1,1 @@
+# LOQ-Power-mode-applet-for-Linux-Mint

@@ -1,0 +1,6 @@
+{
+    "uuid": "loq-power@local",
+    "name": "LOQ Power Mode",
+    "description": "Switch Lenovo LOQ power profiles",
+    "version": "1.0"
+}

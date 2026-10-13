@@ -1,0 +1,48 @@
+
+#!/bin/sh
+set -eu
+
+PROFILE_PATH="/sys/firmware/acpi/platform_profile"
+CHOICES="/sys/firmware/acpi/platform_profile_choices"
+
+# Unterstützte Profilnamen
+case "${1:-}" in
+    low-power|balanced|max-power|performance)
+        PROFILE="$1"
+        ;;
+    *)
+        echo "Usage: loq-power-profile {low-power|balanced|max-power|performance}" >&2
+        exit 2
+        ;;
+esac
+
+# Prüfen, ob die Firmware-Schnittstellen existieren
+if [ ! -e "$PROFILE_PATH" ] || [ ! -r "$CHOICES" ]; then
+    echo "ACPI platform profiles not available" >&2
+    exit 1
+fi
+
+# Prüfen, ob die Firmware das gewünschte Profil unterstützt
+if ! grep -Fxq "$PROFILE" <<EOF
+$(tr ' ' '\n' < "$CHOICES")
+EOF
+then
+    echo "Profile '$PROFILE' not supported by firmware" >&2
+    exit 1
+fi
+
+# Profil setzen
+if ! printf '%s\n' "$PROFILE" > "$PROFILE_PATH"; then
+    echo "Failed to activate profile '$PROFILE'" >&2
+    exit 1
+fi
+
+# Tatsächlich aktiviertes Profil kontrollieren
+ACTIVE=$(cat "$PROFILE_PATH")
+
+if [ "$ACTIVE" != "$PROFILE" ]; then
+    echo "Profile mismatch: requested '$PROFILE', active '$ACTIVE'" >&2
+    exit 1
+fi
+
+echo "Profile activated: $ACTIVE"
